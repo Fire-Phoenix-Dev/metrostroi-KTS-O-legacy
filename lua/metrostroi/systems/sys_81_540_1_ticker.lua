@@ -1,7 +1,7 @@
 -----------------------------------------------------------------
--- 81-717.5П Табло салонное. (ported to 81-540.1)
+-- 81-717.5П Табло салонное.
 -----------------------------------------------------------------
-Metrostroi.DefineSystem("81_540_1_Ticker")
+Metrostroi.DefineSystem("81_717_5P_Ticker")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
@@ -209,6 +209,7 @@ local letters = {
 
 TRAIN_SYSTEM.TickerFont = {}
 
+--Преобразование 1 и 0 в true/false соответственно
 for i,num in pairs(letters) do
     TRAIN_SYSTEM.TickerFont[i] = {}
 	local numtbl = TRAIN_SYSTEM.TickerFont[i]
@@ -247,42 +248,36 @@ if SERVER then
 	
 	function TRAIN_SYSTEM:Think()
 		local Train = self.Train
-		local Power = Train.VB and Train.VB.Value>0
+		local Power = Train.VB.Value>0
 		local Work = self.Active
 		if Power then
-			if self.ODZ then
+			if self.ODZ then --Анимация ОДЗ
 				if not self.ODZTimer then self.AdvertSymbol = self.AdvertSymbol + math.floor(84*Train.DeltaTime) end
 				
 				local pos = self.AdvertSymbol 
-				if (pos >= -97 and pos <= -95) and not self.ODZTimer then
-					pos = -96
-					self.ODZTimer = CurTime()
-				elseif (pos >= -49 and pos <= -47) and not self.ODZTimer then
-					pos = -48
-					self.ODZTimer = CurTime()
-				elseif (pos >= -1 and pos <= 1) and not self.ODZTimer then
-					pos = 0
-					self.ODZTimer = CurTime()
-				elseif (pos >= 47 and pos <= 49) and not self.ODZTimer then
-					pos = 48
-					self.ODZTimer = CurTime()
+
+				local snapRanges = {{-97, -95}, {-49, -47}, {-1, 1}, {47, 49}}
+
+				for _, range in ipairs(snapRanges) do
+					local min, max = range[1], range[2]
+					if pos >= min and pos <= max and not self.ODZTimer then
+						pos = (min + max) / 2
+						self.ODZTimer = CurTime()
+						break
+					end
 				end
 				
-				if self.ODZTimer and CurTime() - self.ODZTimer > 1 then
-					self.ODZTimer = nil
-				end
-				if self.AdvertSymbol > 95 then
-					self.AdvertSymbol = -50
-				end
-			elseif self.OnStation then
+				if self.ODZTimer and CurTime() - self.ODZTimer > 1 then self.ODZTimer = nil end
+				if self.AdvertSymbol > 95 then self.AdvertSymbol = -50 end
+			elseif self.OnStation then --Если на станции крутим показ информационного сообщения станции
 				self.Color = 2
 				self.AdvertSymbol = self.AdvertSymbol - 50*Train.DeltaTime
 				if self.AdvertSymbol < -utf8.len(self.CurrentAdvert)*8.2 then
 					self.AdvertSymbol = 129
 				end
-			else
+			else --Показ информационных сообщений
 				self.AdvertSymbol = self.AdvertSymbol - 50*Train.DeltaTime
-				if self.AdvertSymbol < -utf8.len(self.CurrentAdvert)*8.2 then
+				if self.AdvertSymbol < -utf8.len(self.CurrentAdvert)*8.2 then --Если показали всю строку
 					self.AdvertSymbol = 129
 					if Work then
 						self.Color = 3
@@ -304,10 +299,10 @@ if SERVER then
 			if self.ODZ then self.ODZ = false end
 			if self.Active then self.Active = false end
 		end
-		Train:SetNW2Bool("TickerPower",Train.VB and Train.VB.Value>0 or false)
+		Train:SetNW2Bool("TickerPower",Train.VB.Value>0)
 	end
 else
-	local function drawDot(y,x)
+	local function drawDot(y,x) --Точка
 		x = math.floor(x)
 		y = math.ceil(y)
 		draw.NoTexture()
@@ -320,9 +315,6 @@ else
 	end
 	
     function TRAIN_SYSTEM:ClientInitialize()
-		if not self.TickerFont then
-			self.TickerFont = TRAIN_SYSTEM.TickerFont or {}
-		end
     end
 	
 	function TRAIN_SYSTEM:ClientThink()
@@ -349,66 +341,49 @@ else
 		
 		ypos = math.floor(ypos / 6)
 		
-		local color = Color(255,50,50)
-
-		-- surface.SetDrawColor(color)
-		-- drawDot(0, 0)
-
-		-- if true then return end
+		color = Color(255,50,50)
 		
+		--Осторожно
 		for i = 0,#str1 - 1 do
 			local xpos = i * 54.5 + 28 * 6.82
-			if -54.5 < xpos and xpos < 54.5 * 54.5 then
-				local char = utf8.char(str1[i + 1])
-				local tbl = self.TickerFont[char]
-				if tbl then
-					for y = 1,8 do
-						for x = 1,8 do
-							if tbl[x][y] then
-								surface.SetDrawColor(color)
-								drawDot((x-1)*6 + ypos*6,(y-1)*6.8 + i * 54.5 + 194)
-							end
-						end
-					end
-				end
-			end
+			if not (-54.5 < xpos and xpos < 54.5 * 54.5) then continue end
+			local char = utf8.char(str1[i + 1])
+			local tbl = self.TickerFont[char]
+			if not tbl then continue end -- если нету таблицы идём в другую лавочку
+			for y = 1,8 do for x = 1,8 do
+				if not tbl[x][y] then continue end
+				surface.SetDrawColor(color)
+				drawDot((x-1)*6 + ypos*6,(y-1)*6.8 + i * 54.5 + 194)
+			end end
 		end
 		
+		--Двери
 		for i = 0,#str2 - 1 do
 			local xpos = i * 54.5 + 44 * 6.82
-			if -54.5 < xpos and xpos < 54.5 * 54.5 then
-				local char = utf8.char(str2[i + 1])
-				local tbl = self.TickerFont[char]
-				if tbl then
-					for y = 1,8 do
-						for x = 1,8 do
-							if tbl[x][y] then
-								surface.SetDrawColor(color)
-								drawDot(-48 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
-							end
-						end
-					end
-				end
-			end
+			if not (-54.5 < xpos and xpos < 54.5 * 54.5) then continue end
+			local char = utf8.char(str2[i + 1])
+			local tbl = self.TickerFont[char]
+			if not tbl then continue end -- если нету таблицы идём в другую лавочку
+			for y = 1,8 do for x = 1,8 do
+				if not tbl[x][y] then continue end
+				surface.SetDrawColor(color)
+				drawDot(-48 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
+			end end
 		end
 		
+		--закрываются!
 		for i = 0,#str3 - 1 do
 			local xpos = i * 54.5 + 16 * 6.82
-			if -54.5 < xpos and xpos < 54.5 * 54.5 then
-				local char = utf8.char(str3[i + 1])
-				local tbl = self.TickerFont[char]
-				if tbl then
-					for y = 1,8 do
-						for x = 1,8 do
-							if tbl[x][y] then
-								surface.SetDrawColor(color)
-								drawDot(48 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
-								drawDot(-96 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
-							end
-						end
-					end
-				end
-			end
+			if not (-54.5 < xpos and xpos < 54.5 * 54.5) then continue end
+			local char = utf8.char(str3[i + 1])
+			local tbl = self.TickerFont[char]
+			if not tbl then continue end -- если нету таблицы идём в другую лавочку
+			for y = 1,8 do for x = 1,8 do
+				if not tbl[x][y] then continue end
+				surface.SetDrawColor(color)
+				drawDot(48 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
+				drawDot(-96 + (x-1)*6 + ypos*6,3 + (y-1)*6.8 + xpos)
+			end end
 		end
 		
 		render.SetScissorRect( 0, 0, 0, 0, false )
@@ -416,42 +391,37 @@ else
 	
 	function TRAIN_SYSTEM:PrintText(x, text, col)
 		render.SetScissorRect( 3,0,872, 46, true)
-		col = col or Color(255,0,0)
+		col = not col and Color(255,0,0) or col
 		
 		local str = {utf8.codepoint(text,1,-1)}
 		
 		for i = 0,#str - 1 do
 			local xpos = i * 54.5 + x * 6.82
-			if -54.5 < xpos and xpos < 54.5 * 54.5 then
-				local char = utf8.char(str[i + 1])
-				local tbl = self.TickerFont[char]
+			if not (-54.5 < xpos and xpos < 54.5 * 54.5) then continue end
+			local char = utf8.char(str[i + 1])
+			local tbl = self.TickerFont[char]
+			for y = 1,8 do for x = 1,8 do
 				if tbl then
-					for y = 1,8 do
-						for x = 1,8 do
-							if tbl[x][y] then
-								surface.SetDrawColor(col)
-								drawDot((x-1)*6,3 + (y-1)*6.8 + xpos)
-							end
-						end
-					end
+					if not tbl[x][y] then continue end
+					surface.SetDrawColor(col)
+					drawDot((x-1)*6,3 + (y-1)*6.8 + xpos)
 				else
-					local fallback = self.TickerFont[""] or {}
-					for y = 1,8 do
-						for x = 1,8 do
-							if fallback[x] and fallback[x][y] then
-								surface.SetDrawColor(col)
-								drawDot((x-1)*6,3 + (y-1)*6.8 + xpos)
-							end
-						end
-					end
-				end
-			end
+					if not self.TickerFont[""][x][y] then continue end
+					surface.SetDrawColor(col)
+					drawDot((x-1)*6,3 + (y-1)*6.8 + xpos)
+				end -- Лавочка 24/7
+			end end
 		end
 		
 		render.SetScissorRect( 0, 0, 0, 0, false )
 	end
 
 	function TRAIN_SYSTEM:Tickers(Train)
+		--	Цвета
+		-- 0: Черный
+		-- 1: Красный (ОДЗ)
+		-- 2: Оранжевый (Сообщение о станции)
+		-- 3: Зеленый (Информационные сообщения)
 		local tcol = Train:GetNW2Int("TickerColor",0) == 0 and Color(0,0,0,0) or Train:GetNW2Int("TickerColor",0) == 1 and Color(255,0,0) or Train:GetNW2Int("TickerColor",0) == 2 and Color(255,127,0) or Color(0,255,0)
 		if Train:GetNW2Bool("TickerPower") then
 			if not Train:GetNW2Bool("TickerActive") then
