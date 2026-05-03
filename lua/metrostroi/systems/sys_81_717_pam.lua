@@ -1247,24 +1247,26 @@ if CLIENT then
 end
 
 --KTO-S
-local function KTSO_Arrived()
-    local route = Metrostroi.PAMConfTest[self.Line][self.Path][1]
-    local map = 1
-    local last = route.stations[#route.stations]
-    local stbl = Metrostroi.MilasConfig[map].route
-    local msg = ""
-    PrintTable(stbl.direction[self.Path])
-    msg = stbl.direction[self.Path].station[1].item._attr.description
+function TRAIN_SYSTEM:KTSO_Arrived()
+    -- local route = Metrostroi.PAMConfTest[self.Line][self.Path][1]
+    -- local map = 1
+    -- local last = route.stations[#route.stations]
+    -- local stbl = Metrostroi.MilasConfig[map].route
+    -- local msg = ""
+    -- PrintTable(stbl.direction[self.Path])
+    -- msg = stbl.direction[self.Path].station[1].item._attr.description
 
-    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", msg)
+    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", msg)
 end
 
-local function KTSO_Lost_LSD()
-    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
+function TRAIN_SYSTEM:KTSO_Lost_LSD()
+    timer.Simple(5, function()
+        self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
+    end)
 end
 
-local function KTSO_Next_Assgnment()
-    
+function TRAIN_SYSTEM:KTSO_Next_Assignment()
+    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
 end
 --KTO-S
 
@@ -1276,7 +1278,6 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
 function TRAIN_SYSTEM:UpdateStationList(entered,id)
-    print('FUUUUUUUUUUUCKKK')
     local Train = self.Train
     if not entered or #entered < 1 or #entered > 2 then
         Train:SetNW2Int("PAM:ElemCount",0)
@@ -1971,7 +1972,7 @@ end
 
 function TRAIN_SYSTEM:TriggerSensor(coil,plate)
     if self.SensorEnabled then
-        if self.Distance > 40 then KTSO_Arived() end
+        if self.Distance > 40 then self:KTSO_Arrived() end
 
         --self.Distance = plate.TrackX
         local line = self.Line
@@ -2640,7 +2641,10 @@ function TRAIN_SYSTEM:Think(dT)
 
             if self.State~=6 and ((self.Mode==2 or self.Mode==3) and (dist < -3 and (self.Transit or not self.AntiMiss)) or self.OpenControl == false and speed > 0.2  or self.Mode == 4 and dist<0) then
                 local oldSt = self.StationTable
-                if not self.Shunt then self.StationTable,self.PrevStationTable = self:FindNextStation() end
+                if not self.Shunt then 
+                    self.StationTable,self.PrevStationTable = self:FindNextStation()
+                    self:KTSO_Next_Assignment()
+                end
 
                 if self.Mode == 4 and dist<0 then
                     self.Mode = 5
@@ -3169,7 +3173,7 @@ function TRAIN_SYSTEM:Think(dT)
         if self.V2ETimer and CurTime()-self.V2ETimer>2 then self.EPKActive = false end
 
         if self.Mode==3 then
-            if self.BoardRing==nil and Train.BoardTimer and Train.BoardTimer<-2 and PAM_VV.KD==0 then self.BoardRing = CurTime() end
+            if self.BoardRing==nil and Train.BoardTimer and Train.BoardTimer<-2 and PAM_VV.KD==0 then self:KTSO_Lost_LSD() self.BoardRing = CurTime() end
             if self.BoardRing and (PAM_VV.KB>0 or PAM_VV.KD>0 or CurTime()-self.BoardRing>2) then self.BoardRing = false end
         else
             self.BoardRing = nil
