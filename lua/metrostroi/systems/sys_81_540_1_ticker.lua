@@ -224,7 +224,6 @@ end
 
 if SERVER then
 	function TRAIN_SYSTEM:CANReceive(source,sourceid,target,targetid,textdata,numdata)
-		print(textdata)
 		if textdata == "Activate" then
 			self.Active = true
 		end

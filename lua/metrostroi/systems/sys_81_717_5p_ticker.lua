@@ -224,6 +224,7 @@ end
 
 if SERVER then
 	function TRAIN_SYSTEM:CANReceive(source,sourceid,target,targetid,textdata,numdata)
+		print(source, textdata)
 		if textdata == "Activate" then
 			self.Active = true
 		end
@@ -241,6 +242,7 @@ if SERVER then
 			self.Color = 2
 		end
 		if textdata == "ODZ" then
+			self.Active = true
 			self.ODZ = numdata
 			if self.ODZ then self.AdvertSymbol = -2 self.ODZTimer = nil end
 		end

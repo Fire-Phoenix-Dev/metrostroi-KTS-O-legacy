@@ -1246,6 +1246,28 @@ if CLIENT then
     return
 end
 
+--KTO-S
+local function KTSO_Arrived()
+    local route = Metrostroi.PAMConfTest[self.Line][self.Path][1]
+    local map = 1
+    local last = route.stations[#route.stations]
+    local stbl = Metrostroi.MilasConfig[map].route
+    local msg = ""
+    PrintTable(stbl.direction[self.Path])
+    msg = stbl.direction[self.Path].station[1].item._attr.description
+
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", msg)
+end
+
+local function KTSO_Lost_LSD()
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
+end
+
+local function KTSO_Next_Assgnment()
+    
+end
+--KTO-S
+
 function TRAIN_SYSTEM:TriggerInput(name,value)
     if name == "KSDMode" then
         self.PAKSD = value>0
@@ -1254,6 +1276,7 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
 function TRAIN_SYSTEM:UpdateStationList(entered,id)
+    print('FUUUUUUUUUUUCKKK')
     local Train = self.Train
     if not entered or #entered < 1 or #entered > 2 then
         Train:SetNW2Int("PAM:ElemCount",0)
@@ -1948,13 +1971,13 @@ end
 
 function TRAIN_SYSTEM:TriggerSensor(coil,plate)
     if self.SensorEnabled then
+        if self.Distance > 40 then KTSO_Arived() end
+
         --self.Distance = plate.TrackX
         local line = self.Line
         local path = tonumber(self.Path)
         local tbl = Metrostroi.PAMConfTest and Metrostroi.PAMConfTest[line] and Metrostroi.PAMConfTest[line][path]
         if not tbl then return end
-        self:CANWrite("ODZ")
-        print(self.Mode, coil, plate)
         if self.Mode == 1 then
             --Ищем позицию нашей станции
             --[[ local pos

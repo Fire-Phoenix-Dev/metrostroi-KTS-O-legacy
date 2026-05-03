@@ -34,16 +34,24 @@ function TRAIN_SYSTEM:Initialize()
 	
 end
 
+function TRAIN_SYSTEM:TriggerSensor(coil,plate)
+	print('FUCK', coil, plate)
+end
+
 function TRAIN_SYSTEM:Outputs()
     return {}
 end
 
 function TRAIN_SYSTEM:Inputs()
-   return {"CheckUPO"}
+   	return {"CheckUPO"}
 end
 if TURBOSTROI then return end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
+	if name ~= "CheckUPO" then
+		if type(value) == "table" then print('[KTS-O]', name); PrintTable(value) else print('[KTS-O]', name, value) end
+		return
+	end
 	if name == "CheckUPO" then
 		self.UPOTriggired = true
 		if self.OnStation then 
