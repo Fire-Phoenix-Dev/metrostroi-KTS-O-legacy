@@ -156,6 +156,7 @@ function TRAIN_SYSTEM:Initialize()
     self["48"] = 0 --Включение вентиля замещения № 1
     self.EPK = 0
 
+    self.LSD_lost = false 
 
     self.Ring = 0
 
@@ -1256,17 +1257,24 @@ function TRAIN_SYSTEM:KTSO_Arrived()
     -- PrintTable(stbl.direction[self.Path])
     -- msg = stbl.direction[self.Path].station[1].item._attr.description
 
-    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", msg)
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
+    self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", 'Arrived')
 end
 
 function TRAIN_SYSTEM:KTSO_Lost_LSD()
-    timer.Simple(5, function()
-        self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
-    end)
+    if self.Train.BoardTimer <= 15 and not self.LSD_lost then self.LSD_lost = true else return end
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
 end
 
 function TRAIN_SYSTEM:KTSO_Next_Assignment()
-    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
+    self.LSD_lost = false
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
+    self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", 'Depart')
 end
 --KTO-S
 
@@ -1971,8 +1979,8 @@ function TRAIN_SYSTEM:SetPneumoMode(curMode,override)
 end
 
 function TRAIN_SYSTEM:TriggerSensor(coil,plate)
+    if self.StationTable.pos-self.Distance > 40 then self:KTSO_Arrived() end
     if self.SensorEnabled then
-        if self.Distance > 40 then self:KTSO_Arrived() end
 
         --self.Distance = plate.TrackX
         local line = self.Line
@@ -3173,7 +3181,7 @@ function TRAIN_SYSTEM:Think(dT)
         if self.V2ETimer and CurTime()-self.V2ETimer>2 then self.EPKActive = false end
 
         if self.Mode==3 then
-            if self.BoardRing==nil and Train.BoardTimer and Train.BoardTimer<-2 and PAM_VV.KD==0 then self:KTSO_Lost_LSD() self.BoardRing = CurTime() end
+            if self.BoardRing==nil and Train.BoardTimer and Train.BoardTimer<-2 and PAM_VV.KD==0 then self.BoardRing = CurTime() end
             if self.BoardRing and (PAM_VV.KB>0 or PAM_VV.KD>0 or CurTime()-self.BoardRing>2) then self.BoardRing = false end
         else
             self.BoardRing = nil
@@ -3192,6 +3200,8 @@ function TRAIN_SYSTEM:Think(dT)
         Train:SetNW2String("PAM:TargetStation",stationLast)
         Train:SetNW2Int("PAM:BoardTime",Train.BoardTimer or 0)
         Train:SetNW2Int("PAM:CurrentError",self.CurrentError or 0)
+
+        self:KTSO_Lost_LSD()
 
         if self.MessageTimer and CurTime()-self.MessageTimer > 4 then
             self.CurrentMessage = 0

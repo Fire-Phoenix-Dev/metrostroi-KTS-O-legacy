@@ -34,10 +34,6 @@ function TRAIN_SYSTEM:Initialize()
 	
 end
 
-function TRAIN_SYSTEM:TriggerSensor(coil,plate)
-	print('FUCK', coil, plate)
-end
-
 function TRAIN_SYSTEM:Outputs()
     return {}
 end
@@ -47,42 +43,42 @@ function TRAIN_SYSTEM:Inputs()
 end
 if TURBOSTROI then return end
 
-function TRAIN_SYSTEM:TriggerInput(name,value)
-	if name ~= "CheckUPO" then
-		if type(value) == "table" then print('[KTS-O]', name); PrintTable(value) else print('[KTS-O]', name, value) end
-		return
-	end
-	if name == "CheckUPO" then
-		self.UPOTriggired = true
-		if self.OnStation then 
-			if #Metrostroi.MilasConfig[self.Route].route.direction > 0 then
-				if #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station > 0 then
-					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station then
-						self.Station = 1
-					else
-						self.Station = self.Station + 1
-					end
-				else
-					self.Station = 1
-				end
-			else
-				if #Metrostroi.MilasConfig[self.Route].route.direction.station > 0 then
-					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction.station then
-						self.Station = 1
-					else
-						self.Station = self.Station + 1
-					end
-				else
-					self.Station = 1
-				end
-			end
-			self.ODZ = true
-			self.ODZTimer = CurTime()
-		end
-		self.OnStation = not self.OnStation
-		self:UpdateBoards()
-	end
-end
+-- function TRAIN_SYSTEM:TriggerInput(name,value)
+-- 	if name ~= "CheckUPO" then
+-- 		if type(value) == "table" then print('[KTS-O]', name); PrintTable(value) else print('[KTS-O]', name, value) end
+-- 		return
+-- 	end
+-- 	if name == "CheckUPO" then
+-- 		self.UPOTriggired = true
+-- 		if self.OnStation then 
+-- 			if #Metrostroi.MilasConfig[self.Route].route.direction > 0 then
+-- 				if #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station > 0 then
+-- 					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station then
+-- 						self.Station = 1
+-- 					else
+-- 						self.Station = self.Station + 1
+-- 					end
+-- 				else
+-- 					self.Station = 1
+-- 				end
+-- 			else
+-- 				if #Metrostroi.MilasConfig[self.Route].route.direction.station > 0 then
+-- 					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction.station then
+-- 						self.Station = 1
+-- 					else
+-- 						self.Station = self.Station + 1
+-- 					end
+-- 				else
+-- 					self.Station = 1
+-- 				end
+-- 			end
+-- 			self.ODZ = true
+-- 			self.ODZTimer = CurTime()
+-- 		end
+-- 		self.OnStation = not self.OnStation
+-- 		self:UpdateBoards()
+-- 	end
+-- end
 if SERVER then
 	function TRAIN_SYSTEM:UpdateBoards()
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
@@ -369,29 +365,29 @@ if SERVER then
 		if Power and self.State == 0 then
 			self.State = 1
 		end
-		if Power then
-			if self.State == 22 or self.State == 23 then
-				Train:SetNW2Int("KTS-O:SelChange",self.SelChange)
-			end
-			--print(Train.KV.ReverserPosition)
-			if not self.UPOTriggired and Train.UPO.LineOut>0 then self:TriggerInput("CheckUPO") end
-			if self.UPOTriggired and Train.UPO.LineOut<1 then self.UPOTriggired = false end
-			if Train:ReadTrainWire(15) > 0 and self.ODZ then self.ODZ = false self:UpdateBoards() end
-			if not self.OnStation and not self.ODZ and Train.KV.ReverserPosition ~= 0 then
-				if not self.TickerRandomMSG then
-					local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
-					self:SendSpecial(rnd)
-					self.TickerRandomMSG = CurTime()
-				end
-				if self.TickerRandomMSG and CurTime() - self.TickerRandomMSG > 35 then
-					local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
-					self:SendSpecial(rnd)
-					self.TickerRandomMSG = CurTime()
-				end
-			else
-				self.TickerRandomMSG = nil
-			end
-		end
+		-- if Power then
+		-- 	if self.State == 22 or self.State == 23 then
+		-- 		Train:SetNW2Int("KTS-O:SelChange",self.SelChange)
+		-- 	end
+		-- 	--print(Train.KV.ReverserPosition)
+		-- 	if not self.UPOTriggired and Train.UPO.LineOut>0 then self:TriggerInput("CheckUPO") end
+		-- 	if self.UPOTriggired and Train.UPO.LineOut<1 then self.UPOTriggired = false end
+		-- 	if Train:ReadTrainWire(15) > 0 and self.ODZ then self.ODZ = false self:UpdateBoards() end
+		-- 	if not self.OnStation and not self.ODZ and Train.KV.ReverserPosition ~= 0 then
+		-- 		if not self.TickerRandomMSG then
+		-- 			local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
+		-- 			self:SendSpecial(rnd)
+		-- 			self.TickerRandomMSG = CurTime()
+		-- 		end
+		-- 		if self.TickerRandomMSG and CurTime() - self.TickerRandomMSG > 35 then
+		-- 			local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
+		-- 			self:SendSpecial(rnd)
+		-- 			self.TickerRandomMSG = CurTime()
+		-- 		end
+		-- 	else
+		-- 		self.TickerRandomMSG = nil
+		-- 	end
+		-- end
 		for k,v in pairs(self.TriggerNames) do
 			if Train[v] and (Train[v].Value > 0.5) ~= self.Triggers[v] then
 				self:Trigger(v,Train[v].Value > 0.5)
