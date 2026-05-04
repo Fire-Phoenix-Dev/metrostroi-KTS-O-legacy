@@ -1249,6 +1249,7 @@ end
 
 --KTO-S
 function TRAIN_SYSTEM:KTSO_Arrived()
+    print('PAM ARRIVED')
     -- local route = Metrostroi.PAMConfTest[self.Line][self.Path][1]
     -- local map = 1
     -- local last = route.stations[#route.stations]
@@ -1258,22 +1259,31 @@ function TRAIN_SYSTEM:KTSO_Arrived()
     -- msg = stbl.direction[self.Path].station[1].item._attr.description
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", true)
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
-    self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
-    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", 'Arrived')
+
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", 'Arrived')
 end
 
 function TRAIN_SYSTEM:KTSO_Lost_LSD()
+    if self.Train.BoardTimer >= 20 then self.LSD_lost = false end
     if self.Train.BoardTimer <= 15 and not self.LSD_lost then self.LSD_lost = true else return end
+
+    print('PAM LOST LSD')
+    
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", true)
+
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
 end
 
 function TRAIN_SYSTEM:KTSO_Next_Assignment()
-    self.LSD_lost = false
+    print('PAM ASSIGNMENT')
+
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+    self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
-    self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
+
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", 'Depart')
 end
 --KTO-S
