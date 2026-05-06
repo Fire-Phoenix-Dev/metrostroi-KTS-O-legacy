@@ -43,42 +43,9 @@ function TRAIN_SYSTEM:Inputs()
 end
 if TURBOSTROI then return end
 
--- function TRAIN_SYSTEM:TriggerInput(name,value)
--- 	if name ~= "CheckUPO" then
--- 		if type(value) == "table" then print('[KTS-O]', name); PrintTable(value) else print('[KTS-O]', name, value) end
--- 		return
--- 	end
--- 	if name == "CheckUPO" then
--- 		self.UPOTriggired = true
--- 		if self.OnStation then 
--- 			if #Metrostroi.MilasConfig[self.Route].route.direction > 0 then
--- 				if #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station > 0 then
--- 					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction[self.Direction].station then
--- 						self.Station = 1
--- 					else
--- 						self.Station = self.Station + 1
--- 					end
--- 				else
--- 					self.Station = 1
--- 				end
--- 			else
--- 				if #Metrostroi.MilasConfig[self.Route].route.direction.station > 0 then
--- 					if self.Station == #Metrostroi.MilasConfig[self.Route].route.direction.station then
--- 						self.Station = 1
--- 					else
--- 						self.Station = self.Station + 1
--- 					end
--- 				else
--- 					self.Station = 1
--- 				end
--- 			end
--- 			self.ODZ = true
--- 			self.ODZTimer = CurTime()
--- 		end
--- 		self.OnStation = not self.OnStation
--- 		self:UpdateBoards()
--- 	end
--- end
+function TRAIN_SYSTEM:TriggerInput(name,value)
+	
+end
 if SERVER then
 	function TRAIN_SYSTEM:UpdateBoards()
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
