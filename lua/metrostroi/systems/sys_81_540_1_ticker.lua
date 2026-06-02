@@ -1,7 +1,7 @@
 -----------------------------------------------------------------
 -- 81-717.5П Табло салонное.
 -----------------------------------------------------------------
-Metrostroi.DefineSystem("81_717_5P_Ticker")
+Metrostroi.DefineSystem("81_540_1_Ticker")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
