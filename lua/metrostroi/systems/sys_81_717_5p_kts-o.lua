@@ -47,27 +47,27 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	
 end
 if SERVER then
-	function TRAIN_SYSTEM:UpdateBoards()
-		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
-		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",self.OnStation)
-		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ",self.ODZ)
-		local stbl = Metrostroi.MilasConfig[self.Route].route
-		local msg = ""
-		if #stbl.direction > 0 then
-			if #stbl.direction[self.Direction].station > 0 then
-				msg = stbl.direction[self.Direction].station[self.Station].item._attr.description
-			else
-				msg = stbl.direction[self.Direction].station.item._attr.description
-			end
-		else
-			if #stbl.direction.station > 0 then
-				msg = stbl.direction.station[self.Station].item._attr.description
-			else
-				msg = stbl.direction.station.item._attr.description
-			end
-		end
-		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage",msg)
-	end
+	-- function TRAIN_SYSTEM:UpdateBoards()
+	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",self.OnStation)
+	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ",self.ODZ)
+	-- 	local stbl = Metrostroi.MilasConfig[self.Route].route
+	-- 	local msg = ""
+	-- 	if #stbl.direction > 0 then
+	-- 		if #stbl.direction[self.Direction].station > 0 then
+	-- 			msg = stbl.direction[self.Direction].station[self.Station].item._attr.description
+	-- 		else
+	-- 			msg = stbl.direction[self.Direction].station.item._attr.description
+	-- 		end
+	-- 	else
+	-- 		if #stbl.direction.station > 0 then
+	-- 			msg = stbl.direction.station[self.Station].item._attr.description
+	-- 		else
+	-- 			msg = stbl.direction.station.item._attr.description
+	-- 		end
+	-- 	end
+	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage",msg)
+	-- end
 	function TRAIN_SYSTEM:SendSpecial(sel)
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",false)

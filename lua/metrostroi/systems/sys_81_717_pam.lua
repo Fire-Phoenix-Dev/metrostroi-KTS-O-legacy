@@ -1266,6 +1266,7 @@ function TRAIN_SYSTEM:KTSO_Arrived()
 end
 
 function TRAIN_SYSTEM:KTSO_Lost_LSD()
+    if not self.Train.BoardTimer then return end
     if self.Train.BoardTimer >= 20 then self.LSD_lost = false end
     if self.Train.BoardTimer <= 15 and not self.LSD_lost then self.LSD_lost = true else return end
 
