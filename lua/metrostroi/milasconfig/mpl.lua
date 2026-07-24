@@ -17,6 +17,9 @@ timer.Simple(1,function()
 			<station description="Парк Победы">
 				<item description="Парк Победы. Park Pobedy. Следующая станция Электросила. The next station is Elektrosila."/>
 			</station>
+			<station description="Электросила">
+				<item description="Электросила. Elektrosila. Следующая станция Московские Ворота. The next station is Moskovskiye Vorota."/>
+			</station>
 			<station description="Московские Ворота">
 				<item description="Московские Ворота. Moskovskiye Vorota. Следующая станция Фрунзенская. The next station is Frunzenskaya."/>
 			</station>
@@ -36,6 +39,9 @@ timer.Simple(1,function()
 			</station>
 			<station description="Московские Ворота">
 				<item description="Московские Ворота. Moskovskiye Vorota. Следующая станция Парк Победы. The next station is Park Pobedy."/>
+			</station>
+			<station description="Электросила">
+				<item description="Электросила. Elektrosila. Следующая станция Парк Победы. The next station is Park Pobedy."/>
 			</station>
 			<station description="Парк Победы">
 				<item description="Парк Победы. Park Pobedy. Следующая станция Московская, выход к автобусам в аэропорт Пулково. The next station is Moskovskaya. Exit to buses to Pulkovo airport."/>

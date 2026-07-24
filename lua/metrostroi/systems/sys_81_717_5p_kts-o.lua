@@ -26,12 +26,12 @@ function TRAIN_SYSTEM:Initialize()
 	self.Route = 1
 	self.Direction = 1
 	self.Station = 1
+	self.CStation = {}
 	
 	self.OnStation = false
 	self.ODZ = false
 
 	self.Time = 0
-	
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -47,27 +47,56 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	
 end
 if SERVER then
-	-- function TRAIN_SYSTEM:UpdateBoards()
-	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
-	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",self.OnStation)
-	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ",self.ODZ)
-	-- 	local stbl = Metrostroi.MilasConfig[self.Route].route
-	-- 	local msg = ""
-	-- 	if #stbl.direction > 0 then
-	-- 		if #stbl.direction[self.Direction].station > 0 then
-	-- 			msg = stbl.direction[self.Direction].station[self.Station].item._attr.description
-	-- 		else
-	-- 			msg = stbl.direction[self.Direction].station.item._attr.description
-	-- 		end
-	-- 	else
-	-- 		if #stbl.direction.station > 0 then
-	-- 			msg = stbl.direction.station[self.Station].item._attr.description
-	-- 		else
-	-- 			msg = stbl.direction.station.item._attr.description
-	-- 		end
+	-- function TRAIN_SYSTEM:CANReceive(source,sourceid,target,targetid,textdata,data)
+	-- 	print(source, textdata)
+	-- 	if textdata == "Station" then
+	-- 		self.CStation = data
 	-- 	end
-	-- 	self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage",msg)
 	-- end
+	function TRAIN_SYSTEM:UpdateBoards()
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",self.OnStation)
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ",self.ODZ)
+		local stbl = Metrostroi.MilasConfig[self.Route].route
+		local msg = ""
+		if #stbl.direction > 0 then
+			if #stbl.direction[self.CStation.path].station > 0 then
+				msg = stbl.direction[self.CStation.path].station[self.CStation.name].item._attr.description
+			else
+				msg = stbl.direction[self.CStation.path].station.item._attr.description
+			end
+		else
+			if #stbl.direction.station > 0 then
+				msg = stbl.direction.station[self.CStation.name].item._attr.description
+			else
+				msg = stbl.direction.station.item._attr.description
+			end
+		end
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage",msg)
+	end
+	function TRAIN_SYSTEM:Send()
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",self.OnStation)
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ",self.ODZ)
+
+		local stbl = Metrostroi.MilasConfig[self.Route].route
+		local msg = ""
+		if #stbl.direction > 0 then
+			if #stbl.direction[self.CStation.path].station > 0 then
+				msg = stbl.direction[self.CStation.path].station[self.CStation.name].item._attr.description
+			else
+				msg = stbl.direction[self.CStation.path].station.item._attr.description
+			end
+		else
+			if #stbl.direction.station > 0 then
+				msg = stbl.direction.station[self.CStation.name].item._attr.description
+			else
+				msg = stbl.direction.station.item._attr.description
+			end
+		end
+
+		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage",msg)
+	end
 	function TRAIN_SYSTEM:SendSpecial(sel)
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
 		self.Train:CANWrite("KTS_O",self.Train:GetWagonNumber(),"Ticker",nil,"Station",false)
@@ -332,29 +361,6 @@ if SERVER then
 		if Power and self.State == 0 then
 			self.State = 1
 		end
-		-- if Power then
-		-- 	if self.State == 22 or self.State == 23 then
-		-- 		Train:SetNW2Int("KTS-O:SelChange",self.SelChange)
-		-- 	end
-		-- 	--print(Train.KV.ReverserPosition)
-		-- 	if not self.UPOTriggired and Train.UPO.LineOut>0 then self:TriggerInput("CheckUPO") end
-		-- 	if self.UPOTriggired and Train.UPO.LineOut<1 then self.UPOTriggired = false end
-		-- 	if Train:ReadTrainWire(15) > 0 and self.ODZ then self.ODZ = false self:UpdateBoards() end
-		-- 	if not self.OnStation and not self.ODZ and Train.KV.ReverserPosition ~= 0 then
-		-- 		if not self.TickerRandomMSG then
-		-- 			local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
-		-- 			self:SendSpecial(rnd)
-		-- 			self.TickerRandomMSG = CurTime()
-		-- 		end
-		-- 		if self.TickerRandomMSG and CurTime() - self.TickerRandomMSG > 35 then
-		-- 			local rnd = math.random(1,#Metrostroi.MilasConfig[self.Route].route.list.item)
-		-- 			self:SendSpecial(rnd)
-		-- 			self.TickerRandomMSG = CurTime()
-		-- 		end
-		-- 	else
-		-- 		self.TickerRandomMSG = nil
-		-- 	end
-		-- end
 		for k,v in pairs(self.TriggerNames) do
 			if Train[v] and (Train[v].Value > 0.5) ~= self.Triggers[v] then
 				self:Trigger(v,Train[v].Value > 0.5)

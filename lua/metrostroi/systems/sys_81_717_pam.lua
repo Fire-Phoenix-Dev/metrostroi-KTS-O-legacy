@@ -1248,18 +1248,18 @@ if CLIENT then
 end
 
 --KTO-S
+local function GetStationData(LineID, stationID)
+    local stationNum = Metrostroi.PAMStations[tonumber(LineID)][tonumber(stationID)]
+    local station = Metrostroi.PAMStations[tonumber(LineID)][stationNum]
+    return {name = station.name, id = station.id, path = station.path}
+end
+
 function TRAIN_SYSTEM:KTSO_Arrived()
     print('PAM ARRIVED')
-    -- local route = Metrostroi.PAMConfTest[self.Line][self.Path][1]
-    -- local map = 1
-    -- local last = route.stations[#route.stations]
-    -- local stbl = Metrostroi.MilasConfig[map].route
-    -- local msg = ""
-    -- PrintTable(stbl.direction[self.Path])
-    -- msg = stbl.direction[self.Path].station[1].item._attr.description
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", true)
+    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"KTS_O",nil,"Station", GetStationData(self.Line,self.Station))
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", 'Arrived')
@@ -1274,6 +1274,7 @@ function TRAIN_SYSTEM:KTSO_Lost_LSD()
     
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", true)
+    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"KTS_O",nil,"Station", GetStationData(self.Line,self.Station))
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", true)
 end
@@ -1283,6 +1284,7 @@ function TRAIN_SYSTEM:KTSO_Next_Assignment()
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Activate")
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"Station", false)
+    -- self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"KTS_O",nil,"Station", GetStationData(self.Line,self.Station))
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"ODZ", false)
 
     self.Train:CANWrite("PAM",self.Train:GetWagonNumber(),"Ticker",nil,"StationMessage", 'Depart')
